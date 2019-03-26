@@ -1,0 +1,115 @@
+<html>
+<head>
+<title>Enter a title, displayed at the top of the window.</title>
+</head>
+<!-- The information between the BODY and /BODY tags is displayed.-->
+<body>
+
+</body>
+<script>
+var transactionApproval = true;
+
+const contractAddress = '0xe32046017dde05d61d0b5a1c72ee5958a3382ea2';
+var contractABI = [
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "x",
+				"type": "uint256"
+			}
+		],
+		"name": "set",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "get",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+function validate() {
+  if (typeof web3 !== 'undefined'){
+    console.log('MetaMask is installed')
+
+    web3.eth.getAccounts(function(err, accounts){
+      if (err != null) {
+        console.log(err)
+      }
+      else if (accounts.length === 0) {
+        console.log('MetaMask is locked')
+      }
+      else {
+          demonstrate();
+    }
+    });
+  } 
+  else{
+    console.log('MetaMask is not installed')
+  }
+}
+
+function demonstrate() {
+    console.log('MetaMask is unlocked')
+    console.log(web3.eth.accounts);
+    web3.eth.getBalance(web3.eth.accounts[0],function(ba1,bal){
+            balInWei = web3.toDecimal(bal);
+            console.log(web3.fromWei(balInWei, 'ether')+' ETH')});
+
+    // Read value of var from smart contract on ropsten
+    const contract = web3.eth.contract(contractABI);
+    const contractInstance = contract.at(contractAddress);
+    contractInstance.get(function(err,result){
+        console.log(err)
+        console.log(web3.toDecimal(result))
+    });
+    contractInstance.set(4405,{from: web3.eth.accounts[0]}, (error, txHash) => {
+    // handle the error here
+    if(!error && txHash){
+       return console.log(txHash);
+    }
+    console.log(error);
+});
+}
+window.addEventListener('load', async () => {
+    // Modern dapp browsers...
+    if (window.ethereum) {
+        window.web3 = new Web3(ethereum);
+        try {
+            // Request account access if needed
+            await ethereum.enable();
+            // Acccounts now exposed
+            // web3.eth.sendTransaction({/* ... */});
+
+            validate();
+        } catch (error) {
+            // User denied account access...
+        }
+    }
+    // Legacy dapp browsers...
+    else if (window.web3) {
+        window.web3 = new Web3(web3.currentProvider);
+        // Acccounts always exposed
+        web3.eth.sendTransaction({/* ... */});
+    }
+    // Non-dapp browsers...
+    else {
+        console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+    }});
+
+    
+</script>
+</html>
