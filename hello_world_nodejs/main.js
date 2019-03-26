@@ -5,55 +5,55 @@ const Tx = require('ethereumjs-tx');
 require('dotenv').config();
 const app = express();
 var bodyParser = require('body-parser');
- 
+
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
- 
+
 // parse application/json
 app.use(bodyParser.json())
 //Infura HttpProvider Endpoint
 web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/ad8828d4e4114d3a8e4f62ccee3f38e5"));
+//contract abi is the array that you can get from the ethereum wallet or etherscan
+var contractABI = [
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "x",
+                "type": "uint256"
+            }
+        ],
+        "name": "set",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "get",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
+var myAddress = '0x520b483aC51AF9B34a3DF9dc581C3449a5af31fe';
+var privateKey = Buffer.from(process.env.private_key, 'hex')
+
+
+var contractAddress = "0xe32046017dde05d61d0b5a1c72ee5958a3382ea2";
+//creating contract object
+var contract = new web3js.eth.Contract(contractABI, contractAddress);
 
 function demonstrate(req, res) {
     const updatedVarValue = req.body.value || 678;
-    //contract abi is the array that you can get from the ethereum wallet or etherscan
-    var contractABI = [
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "x",
-                    "type": "uint256"
-                }
-            ],
-            "name": "set",
-            "outputs": [],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [],
-            "name": "get",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "view",
-            "type": "function"
-        }
-    ];
-    var myAddress = '0x520b483aC51AF9B34a3DF9dc581C3449a5af31fe';
-    var privateKey = Buffer.from(process.env.private_key, 'hex')
-
-
-    var contractAddress = "0xe32046017dde05d61d0b5a1c72ee5958a3382ea2";
-    //creating contract object
-    var contract = new web3js.eth.Contract(contractABI, contractAddress);
 
     var count;
     // get transaction count, later will used as nonce
@@ -101,12 +101,18 @@ function demonstrate(req, res) {
 }
 
 app.post('/sendtx', function (req, res) {
-    demonstrate(req,res);
+    demonstrate(req, res);
 });
 
-app.get('/getval',function(req,res){
-
+app.get('/getval', function (req, res) {
+    contract.methods.get().call((err,response)=>{
+        if(err)
+            return res.status(500).send(err);
+        console.log(err)
+        res.json({value:response});
+    });
 });
+
 
 // demonstrate()
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
